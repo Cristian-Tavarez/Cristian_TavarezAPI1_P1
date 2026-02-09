@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Cristian_TavarezAPI1_P1.Models
 {
-    public class Viajeespacial 
+    public class EntradasHuacales
     {
         [Key]
         public int ViajeId { get; set; }
@@ -12,7 +12,7 @@ namespace Cristian_TavarezAPI1_P1.Models
         public string FechaId { get; set; }
 
         [Required]
-        public string Descripcion { get; set; }
+        public string Descripcion { get; set; }  
 
     }
 }

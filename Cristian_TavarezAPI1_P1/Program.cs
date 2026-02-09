@@ -1,10 +1,16 @@
+using Microsoft.EntityFrameworkCore;
 using Cristian_TavarezAPI1_P1.Components;
+using Cristian_TavarezAPI1_P1.Data;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
 
