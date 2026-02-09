@@ -1,18 +1,23 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace Cristian_TavarezAPI1_P1.Models
+namespace Cristian_TavarezAPI1_P1.Models;
+
+public class EntradaHuacales
 {
-    public class EntradasHuacales
-    {
-        [Key]
-        public int ViajeId { get; set; }
+    [Key]
+    public int IdEntrada { get; set; }
 
-        [Required]
-        public string FechaId { get; set; }
+    [Required]
+    public DateTime Fecha { get; set; } = DateTime.Today;
 
-        [Required]
-        public string Descripcion { get; set; }  
+    [Required]
+    public string NombreCliente { get; set; } = "";
 
-    }
+    [Required]
+    public int Cantidad { get; set; }
+
+    [Required]
+    public decimal Precio { get; set; }
 }
+ 
+
