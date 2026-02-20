@@ -1,0 +1,58 @@
+﻿@page "/entradashuacales"
+@rendermode InteractiveServer
+@using Cristian_TavarezAPI1_P1.Models
+@using Cristian_TavarezAPI1_P1.Services
+@inject EntradasHuacalesService service
+
+<h3>Entradas de Huacales</h3>
+
+<div class="mb-3">
+    <input class="form-control" placeholder="Filtrar por cliente"
+           @bind="filtro" @bind:event="oninput" />
+</div>
+
+<p><b>Cantidad Registros:</b> @lista.Count</p>
+<p><b>Total Huacales:</b> @TotalHuacales()</p>
+
+<a href="/entradashuacales/create" class="btn btn-primary mb-3">Nueva Entrada</a>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Cliente</th>
+            <th>Cantidad</th>
+            <th>Fecha</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in lista)
+        {
+            <tr>
+                <td>@item.NombreCliente</td>
+                <td>@item.Cantidad</td>
+                <td>@item.Fecha.ToShortDateString()</td>
+                <td>
+                    <a class="btn btn-warning btn-sm"
+                       href="/entradashuacales/edit/@item.IdEntrada">Editar</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+
+    List<EntradaHuacales> lista = new();
+    string? filtro;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        lista = await service.ListarAsync(filtro);
+    }
+
+    int TotalHuacales()
+    {
+        return lista.Sum(x => x.Cantidad);
+    }
+}
