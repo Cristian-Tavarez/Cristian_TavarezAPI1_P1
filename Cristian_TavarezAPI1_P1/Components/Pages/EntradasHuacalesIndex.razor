@@ -2,57 +2,184 @@
 @rendermode InteractiveServer
 @using Cristian_TavarezAPI1_P1.Models
 @using Cristian_TavarezAPI1_P1.Services
+@using Microsoft.AspNetCore.Components.QuickGrid
 @inject EntradasHuacalesService service
 
-<h3>Entradas de Huacales</h3>
+<h3 class="mb-4">Entradas de Huacales</h3>
 
-<div class="mb-3">
-    <input class="form-control" placeholder="Filtrar por cliente"
-           @bind="filtro" @bind:event="oninput" />
+<div class="card mb-4 p-3 shadow-sm">
+    <div class="row g-3">
+
+        <div class="col-md-3">
+            <label>Cliente</label>
+            <input class="form-control"
+                   placeholder="Nombre del cliente"
+                   @bind="filtroCliente"
+                   @bind:event="oninput" />
+        </div>
+
+        <div class="col-md-2">
+            <label>Cantidad</label>
+            <input type="number"
+                   class="form-control"
+                   @bind="filtroCantidad"
+                   @bind:event="oninput" />
+        </div>
+
+        <div class="col-md-2">
+            <label>Precio Mínimo</label>
+            <input type="number"
+                   class="form-control"
+                   @bind="precioMin"
+                   @bind:event="oninput" />
+        </div>
+
+        <div class="col-md-2">
+            <label>Precio Máximo</label>
+            <input type="number"
+                   class="form-control"
+                   @bind="precioMax"
+                   @bind:event="oninput" />
+        </div>
+
+        <div class="col-md-3">
+            <label>Fecha Desde</label>
+            <input type="date"
+                   class="form-control"
+                   @bind="fechaDesde"
+                   @bind:event="oninput" />
+        </div>
+
+        <div class="col-md-3">
+            <label>Fecha Hasta</label>
+            <input type="date"
+                   class="form-control"
+                   @bind="fechaHasta"
+                   @bind:event="oninput" />
+        </div>
+
+        <div class="col-md-3 d-flex align-items-end">
+            <button class="btn btn-secondary w-100"
+                    @onclick="LimpiarFiltros">
+                Limpiar Filtros
+            </button>
+        </div>
+
+    </div>
 </div>
 
-<p><b>Cantidad Registros:</b> @lista.Count</p>
-<p><b>Total Huacales:</b> @TotalHuacales()</p>
+<div class="mb-3">
+    <b>Cantidad Registros:</b> @listaFiltrada.Count() |
+    <b>Total Huacales:</b> @TotalHuacales() |
+    <b>Total Dinero:</b> @TotalDinero().ToString("C")
+</div>
 
-<a href="/entradashuacales/create" class="btn btn-primary mb-3">Nueva Entrada</a>
+<a href="/entradashuacales/create" class="btn btn-primary mb-3">
+    Nueva Entrada
+</a>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Cliente</th>
-            <th>Cantidad</th>
-            <th>Fecha</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in lista)
-        {
-            <tr>
-                <td>@item.NombreCliente</td>
-                <td>@item.Cantidad</td>
-                <td>@item.Fecha.ToShortDateString()</td>
-                <td>
-                    <a class="btn btn-warning btn-sm"
-                       href="/entradashuacales/edit/@item.IdEntrada">Editar</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+<QuickGrid TGridItem="EntradaHuacales"
+           Items="listaFiltrada.AsQueryable()"
+           Pagination="@pagination"
+           Class="table table-striped table-bordered shadow-sm">
+
+    <PropertyColumn Property="@(x => x.NombreCliente)"
+                    Title="Cliente"
+                    Sortable="true" />
+
+    <PropertyColumn Property="@(x => x.Cantidad)"
+                    Title="Cantidad"
+                    Sortable="true" />
+
+    <PropertyColumn Property="@(x => x.Precio)"
+                    Title="Precio"
+                    Format="C"
+                    Sortable="true" />
+
+    <PropertyColumn Property="@(x => x.Fecha)"
+                    Title="Fecha"
+                    Format="dd/MM/yyyy"
+                    Sortable="true" />
+
+    <TemplateColumn Title="Acciones">
+        <a class="btn btn-warning btn-sm"
+           href="/entradashuacales/edit/@context.IdEntrada">
+            Editar
+        </a>
+    </TemplateColumn>
+
+</QuickGrid>
+
+<Paginator State="@pagination" />
 
 @code {
 
     List<EntradaHuacales> lista = new();
-    string? filtro;
 
-    protected override async Task OnParametersSetAsync()
+    PaginationState pagination = new() { ItemsPerPage = 2 };
+
+    string? filtroCliente;
+    int? filtroCantidad;
+    decimal? precioMin;
+    decimal? precioMax;
+    DateTime? fechaDesde;
+    DateTime? fechaHasta;
+
+    IEnumerable<EntradaHuacales> listaFiltrada =>
+        lista.Where(x =>
+
+            (string.IsNullOrWhiteSpace(filtroCliente) ||
+             (x.NombreCliente != null &&
+              x.NombreCliente.Contains(filtroCliente, StringComparison.OrdinalIgnoreCase)))
+
+            &&
+
+            (!filtroCantidad.HasValue ||
+             x.Cantidad == filtroCantidad.Value)
+
+            &&
+
+            (!precioMin.HasValue ||
+             x.Precio >= precioMin.Value)
+
+            &&
+
+            (!precioMax.HasValue ||
+             x.Precio <= precioMax.Value)
+
+            &&
+
+            (!fechaDesde.HasValue ||
+             x.Fecha.Date >= fechaDesde.Value.Date)
+
+            &&
+
+            (!fechaHasta.HasValue ||
+             x.Fecha.Date <= fechaHasta.Value.Date)
+        );
+
+    protected override async Task OnInitializedAsync()
     {
-        lista = await service.ListarAsync(filtro);
+        lista = await service.ListarAsync();
     }
 
     int TotalHuacales()
     {
-        return lista.Sum(x => x.Cantidad);
+        return listaFiltrada.Sum(x => x.Cantidad);
+    }
+
+    decimal TotalDinero()
+    {
+        return listaFiltrada.Sum(x => x.Precio);
+    }
+
+    void LimpiarFiltros()
+    {
+        filtroCliente = null;
+        filtroCantidad = null;
+        precioMin = null;
+        precioMax = null;
+        fechaDesde = null;
+        fechaHasta = null;
     }
 }
