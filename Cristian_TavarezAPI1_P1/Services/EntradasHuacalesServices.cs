@@ -1,6 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Net.NetworkInformation;
 using Cristian_TavarezAPI1_P1.Contexto;
 using Cristian_TavarezAPI1_P1.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace Cristian_TavarezAPI1_P1.Services;
 
@@ -12,13 +13,16 @@ public class EntradasHuacalesService
     {
         _context = context;
     }
-
-    public async Task<List<EntradaHuacales>> ListarAsync(string? cliente)
+    public async Task<List<EntradaHuacales>> ListarAsync(string? cliente = null)
     {
         var query = _context.EntradasHuacales.AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(cliente))
-            query = query.Where(x => x.NombreCliente.Contains(cliente));
+        {
+            query = query.Where(x =>
+                x.NombreCliente != null &&
+                x.NombreCliente.Contains(cliente));
+        }
 
         return await query.ToListAsync();
     }
