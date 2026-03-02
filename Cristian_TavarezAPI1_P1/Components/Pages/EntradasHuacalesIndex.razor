@@ -19,7 +19,7 @@
         </div>
 
         <div class="col-md-2">
-            <label>Cantidad</label>
+            <label>Cantidad Total</label>
             <input type="number"
                    class="form-control"
                    @bind="filtroCantidad"
@@ -27,18 +27,18 @@
         </div>
 
         <div class="col-md-2">
-            <label>Precio Mínimo</label>
+            <label>Total Mínimo</label>
             <input type="number"
                    class="form-control"
-                   @bind="precioMin"
+                   @bind="totalMin"
                    @bind:event="oninput" />
         </div>
 
         <div class="col-md-2">
-            <label>Precio Máximo</label>
+            <label>Total Máximo</label>
             <input type="number"
                    class="form-control"
-                   @bind="precioMax"
+                   @bind="totalMax"
                    @bind:event="oninput" />
         </div>
 
@@ -46,16 +46,14 @@
             <label>Fecha Desde</label>
             <input type="date"
                    class="form-control"
-                   @bind="fechaDesde"
-                   @bind:event="oninput" />
+                   @bind="fechaDesde" />
         </div>
 
         <div class="col-md-3">
             <label>Fecha Hasta</label>
             <input type="date"
                    class="form-control"
-                   @bind="fechaHasta"
-                   @bind:event="oninput" />
+                   @bind="fechaHasta" />
         </div>
 
         <div class="col-md-3 d-flex align-items-end">
@@ -87,12 +85,21 @@
                     Title="Cliente"
                     Sortable="true" />
 
-    <PropertyColumn Property="@(x => x.Cantidad)"
-                    Title="Cantidad"
+    <TemplateColumn Title="Tipos">
+        @foreach (var detalle in context.Detalles)
+        {
+            <span class="badge me-1 @ObtenerClaseColor(detalle.TipoHuacal?.Descripcion)">
+                @detalle.TipoHuacal?.Descripcion (@detalle.Cantidad)
+            </span>
+        }
+    </TemplateColumn>
+
+    <PropertyColumn Property="@(x => x.CantidadTotal)"
+                    Title="Cantidad Total"
                     Sortable="true" />
 
-    <PropertyColumn Property="@(x => x.Precio)"
-                    Title="Precio"
+    <PropertyColumn Property="@(x => x.TotalDinero)"
+                    Title="Total Dinero"
                     Format="C"
                     Sortable="true" />
 
@@ -116,12 +123,12 @@
 
     List<EntradaHuacales> lista = new();
 
-    PaginationState pagination = new() { ItemsPerPage = 2 };
+    PaginationState pagination = new() { ItemsPerPage = 5 };
 
     string? filtroCliente;
     int? filtroCantidad;
-    decimal? precioMin;
-    decimal? precioMax;
+    decimal? totalMin;
+    decimal? totalMax;
     DateTime? fechaDesde;
     DateTime? fechaHasta;
 
@@ -135,17 +142,17 @@
             &&
 
             (!filtroCantidad.HasValue ||
-             x.Cantidad == filtroCantidad.Value)
+             x.CantidadTotal == filtroCantidad.Value)
 
             &&
 
-            (!precioMin.HasValue ||
-             x.Precio >= precioMin.Value)
+            (!totalMin.HasValue ||
+             x.TotalDinero >= totalMin.Value)
 
             &&
 
-            (!precioMax.HasValue ||
-             x.Precio <= precioMax.Value)
+            (!totalMax.HasValue ||
+             x.TotalDinero <= totalMax.Value)
 
             &&
 
@@ -165,21 +172,32 @@
 
     int TotalHuacales()
     {
-        return listaFiltrada.Sum(x => x.Cantidad);
+        return listaFiltrada.Sum(x => x.CantidadTotal);
     }
 
     decimal TotalDinero()
     {
-        return listaFiltrada.Sum(x => x.Precio);
+        return listaFiltrada.Sum(x => x.TotalDinero);
     }
 
     void LimpiarFiltros()
     {
         filtroCliente = null;
         filtroCantidad = null;
-        precioMin = null;
-        precioMax = null;
+        totalMin = null;
+        totalMax = null;
         fechaDesde = null;
         fechaHasta = null;
     }
+
+    string ObtenerClaseColor(string? descripcion)
+    {
+        return descripcion switch
+        {
+            "Rojo" => "bg-danger",
+            "Verde" => "bg-success",
+            _ => "bg-secondary"
+        };
+    }
+
 }
