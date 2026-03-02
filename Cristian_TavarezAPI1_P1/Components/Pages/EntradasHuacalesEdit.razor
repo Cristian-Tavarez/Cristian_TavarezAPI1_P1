@@ -6,7 +6,7 @@
 @inject NavigationManager nav
 
 <div class="row justify-content-center mt-4">
-    <div class="col-md-6">
+    <div class="col-md-10">
         <div class="card shadow-sm">
             <div class="card-header text-center">
                 <h4>Modificar Entrada de Huacales</h4>
@@ -22,11 +22,11 @@
                 else
                 {
                     <EditForm Model="entrada"
-                              OnValidSubmit="Guardar"
-                              FormName="editarEntradaHuacales">
+                              OnValidSubmit="Guardar">
                         <DataAnnotationsValidator />
                         <ValidationSummary class="text-danger" />
 
+                        <!-- ENCABEZADO -->
                         <div class="mb-3">
                             <label class="form-label fw-bold">Fecha</label>
                             <InputDate class="form-control"
@@ -39,17 +39,56 @@
                                        @bind-Value="entrada.NombreCliente" />
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Cantidad</label>
-                            <InputNumber class="form-control"
-                                         @bind-Value="entrada.Cantidad" />
-                        </div>
+                        <hr />
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Precio</label>
-                            <InputNumber class="form-control"
-                                         @bind-Value="entrada.Precio" />
-                        </div>
+                        <h5>Detalles</h5>
+
+                        @foreach (var detalle in entrada.Detalles)
+                        {
+                            <div class="row mb-2">
+
+                                <div class="col-md-4">
+                                    <label>Tipo</label>
+                                    <InputSelect class="form-select"
+                                                 @bind-Value="detalle.TipoId">
+                                        <option value="">Seleccione</option>
+                                        @foreach (var tipo in tipos)
+                                        {
+                                            <option value="@tipo.TipoId">
+                                                @tipo.Descripcion
+                                            </option>
+                                        }
+                                    </InputSelect>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label>Cantidad</label>
+                                    <InputNumber class="form-control"
+                                                 @bind-Value="detalle.Cantidad" />
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label>Precio</label>
+                                    <InputNumber class="form-control"
+                                                 @bind-Value="detalle.Precio" />
+                                </div>
+
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button type="button"
+                                            class="btn btn-danger btn-sm"
+                                            @onclick="() => QuitarLinea(detalle)">
+                                        X
+                                    </button>
+                                </div>
+
+                            </div>
+                        }
+
+                        <button type="button"
+                                class="btn btn-success btn-sm mt-2"
+                                @onclick="AgregarLinea">
+                            + Agregar Línea
+                        </button>
 
                         <div class="d-flex justify-content-between mt-4">
                             <button type="button"
@@ -84,9 +123,26 @@
 
     private EntradaHuacales? entrada;
 
+    private List<TipoHuacal> tipos = new();
+
     protected override async Task OnInitializedAsync()
     {
         entrada = await service.BuscarAsync(Id);
+
+        if (entrada != null)
+            entrada.Detalles ??= new List<EntradaHuacalDetalle>();
+
+        tipos = await service.ListarTiposAsync(); // debes tener este método
+    }
+
+    void AgregarLinea()
+    {
+        entrada!.Detalles!.Add(new EntradaHuacalDetalle());
+    }
+
+    void QuitarLinea(EntradaHuacalDetalle detalle)
+    {
+        entrada!.Detalles!.Remove(detalle);
     }
 
     private async Task Guardar()
